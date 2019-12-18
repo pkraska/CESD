@@ -1,0 +1,16 @@
+Package: CESD
+Type: Package
+Title: CESD data processing scripts
+Version: 0.1.0
+Author: Peter Kraska
+Maintainer: Peter Kraska <peter.kraska@dfo-mpo.gc.ca>
+Description: This package is a set of scripts written to Extend, Transform, and 
+    Load  (ETL) data being gathered withing the Coastal Ecosystem Science Division
+    (CESD). Generally, these are based on older scripts that are no longer 
+    maintained in an effort to make them more user friendly and maintainable. 
+    
+    Other scripts might find their way into this package over time.
+License: Open Government Licence - Canada
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.0.0
