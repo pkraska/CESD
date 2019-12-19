@@ -17,6 +17,9 @@
 #'   `[YEAR]-[MONTH]-[DAY]__SABS_warf_water_temperature_data.csv` for importing
 #'   into COERS.TDRLOG
 #'
+#' @import tidyverse
+#' @import lubridate
+#'
 #' @export
 #'
 #' @examples tdr_proc('hobo_data_file.csv')

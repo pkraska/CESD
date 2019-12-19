@@ -18,6 +18,10 @@
 #' @return Returns a comma delimited text file in
 #'   `R:/Science/CESD/COERS/FPage/data/Wind logger/FOR ORACLE IMPORT/` for
 #'   upload to PTRAN by COERS staff.
+#'
+#' @import tidyverse
+#' @import lubridate
+#'
 #' @export
 #'
 #' @examples wind_proc(x)

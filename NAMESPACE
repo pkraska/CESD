@@ -2,4 +2,6 @@
 
 export(tdr_proc)
 export(wind_proc)
+import(lubridate)
+import(tidyverse)
 importFrom(rlang,.data)
