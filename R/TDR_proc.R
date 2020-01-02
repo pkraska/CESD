@@ -2,7 +2,6 @@
 #'
 #' @author Peter Kraska, \email{peter.kraska@dfo-mpo.gc.ca}
 #'
-#' @
 #' @description function to transform Hobo temperature logger data that has been
 #'   converted from proprietary binary format to a comma separated text file
 #'   into a format that can be ingested in to the COERS.TDRLOG Oracle database
