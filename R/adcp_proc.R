@@ -15,6 +15,7 @@
 
 ADCP_proc <- function(x) {
     raw <- fread(x, header = FALSE, fill = TRUE) %>%
+      as.tbl() %>%
       mutate(
         header = case_when(
           V2 == "cm" ~ TRUE,
@@ -26,19 +27,25 @@ ADCP_proc <- function(x) {
           TRUE ~ FALSE
         )
       )
-    data <- list(raw = raw,
-                 header = )
+
+    data$raw <- raw
 
     headerRaw <- raw %>%
       filter(header == TRUE) %>%
       mutate(ensemble = rep(c(1:(n() / 6)), each = 6))
 
-    ensemble <- headerRaw %>%
-      filter(ensemble == 1) %>%
-      select(-ensemble, -header) %>%
-      as.matrix()
+    ens2String <- function(x) {
+      toString(c(x[1,], x[2,], x[3,], x[4,], x[5,], x[6,]))
+    }
 
-    dim(ensemble) <- c(1, dim(test)[1] * dim(test)[2])
+    ensemble <- headerRaw %>%
+      group_by(ensemble) %>%
+      summarise(header = ens2String(.))
+
+    ensemble %>%
+      mutate(header = str_split(string = header, pattern = ","))
+
+    dim(ensemble) <- c(1, dim(ensemble)[1] * dim(ensemble)[2])
 
     for (i in 2:max(headerRaw$ensemble)) {
       ens <- headerRaw %>%
@@ -46,10 +53,14 @@ ADCP_proc <- function(x) {
         select(-ensemble, -header) %>%
         as.matrix()
 
-      dim(ens) <- c(1, dim(test)[1] * dim(test)[2])
+      dim(ens) <- c(1, dim(ens)[1] * dim(ens)[2])
 
-      ensemble <- bind_rows(ensemble, ens)
+      ensemble <- rbind(ensemble, ens)
     }
+
+    data$header <- ensemble
+
+
 
 
     cleanHeader <- header %>%
