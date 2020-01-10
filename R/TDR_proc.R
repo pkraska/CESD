@@ -62,7 +62,7 @@ tdr_proc <- function(x) {
       .data$TEMP,
       .data$DEPTH
     ) %>%
-    write_csv(paste0("R:/Science/CESD/COERS/FPage/data/TDR/data/for_oracle_import/",
+    write_csv(paste0("R:/Science/CESD/COERS/FPage/data/TDR/for_oracle_import/",
       last(.data$YEAR),
       "-",
       str_pad(last(.data$MONTH), 2, "left", "0"),
