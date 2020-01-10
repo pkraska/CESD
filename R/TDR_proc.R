@@ -45,8 +45,8 @@ tdr_proc <- function(x) {
       HOUR = hour(.data$datet),
       MINUTE = minute(.data$datet),
       STATION = 1,
-      TEMP = .data$temp,
-      DEPTH = .data$press
+      TEMP = trimws(format(round(temp, 2), nsmall = 2)),
+      DEPTH = trimws(format(round(press, 4), nsmall = 4))
     ) %>%
     select(
       .data$STATION,
@@ -62,11 +62,11 @@ tdr_proc <- function(x) {
     write_csv(
       paste0(
         "R:/Science/CESD/COERS/FPage/data/TDR/for_oracle_import/",
-        last(.data$YEAR),
+        last(.$YEAR),
         "-",
-        str_pad(last(.data$MONTH), 2, "left", "0"),
+        str_pad(last(.$MONTH), 2, "left", "0"),
         "-",
-        str_pad(last(.data$DAY), 2, "left", "0"),
+        str_pad(last(.$DAY), 2, "left", "0"),
         "_SABS_warf_water_temperature_data.csv"
       )
     )

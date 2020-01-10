@@ -39,7 +39,7 @@ wind_proc <-
       skip = 2,
       col_names = c("date", "time", "key", "value", "unit", "x"),
       col_types = list(
-        date = col_character(),
+        date = col_date(format = "%m/%d/%Y"),
         time = col_time(),
         key = col_factor(),
         value = col_double(),
@@ -53,20 +53,26 @@ wind_proc <-
       mutate(
         STATION = station,
         GAUGENUM = gaugenum,
-        SDATE = mdy_hms(paste(date, time, sep = " ")),
-        YEAR = year(SDATE),
-        MONTH = month(SDATE),
-        DAY = day(SDATE),
-        HOUR = hour(SDATE),
-        MINUTE = minute(SDATE),
-        SPEED = `WndSpd_m/s`,
-        DIRECTION = WndDir_Degrees,
-        LATITUDE = latitude,
-        LONGITUDE = longitude,
+        SDATE = paste0(
+          day(.$date),
+          "-",
+          month(.$date, label = TRUE, abbr = TRUE),
+          "-",
+          format(.$date, "%y")
+        ),
+        YEAR = year(date),
+        MONTH = month(date),
+        DAY = day(date),
+        HOUR = hour(time),
+        MINUTES = minute(time),
+        SPEED = trimws(format(round(`WndSpd_m/s`, 2), nsmall = 2)),
+        DIRECTION = trimws(format(round(WndDir_Degrees, 2), nsmall = 2)),
+        LATITUDE = format(round(latitude, 5), nsmall = 5),
+        LONGITUDE = format(round(longitude, 5), nsmall = 5),
         AREA = area
       ) %>%
       select(-1:-5) %>%
-      write_csv(
+      write.csv(
         paste0(
           "R:/Science/CESD/COERS/FPage/data/wind/for_oracle_import/",
           last(.$YEAR),
@@ -75,6 +81,7 @@ wind_proc <-
           "-",
           str_pad(last(.$DAY), 2, "left", "0"),
           "_SABS_wharf_wind_data.csv"
-        )
+        ),
+        row.names = FALSE
       )
   }
