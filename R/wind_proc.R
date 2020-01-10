@@ -68,7 +68,7 @@ wind_proc <-
       select(-1:-5) %>%
       write_csv(
         paste0(
-          "R:/Science/CESD/COERS/FPage/data/Wind logger/FOR ORACLE IMPORT/",
+          "R:/Science/CESD/COERS/FPage/data/wind/for_oracle_import/",
           last(.$YEAR),
           "-",
           str_pad(last(.$MONTH), 2, "left", "0"),

@@ -13,7 +13,7 @@
 #'   S/N: xxxx, SEN S/N: xxxx)`, `Water Level, meters (LGR S/N: xxxx)`
 #'
 #' @return returns a comma delimited text file in the format
-#'   `[YEAR]-[MONTH]-[DAY]__SABS_warf_water_temperature_data.csv` for importing
+#'   `[YEAR]-[MONTH]-[DAY]_SABS_warf_water_temperature_data.csv` for importing
 #'   into COERS.TDRLOG
 #'
 #' @import tidyverse
@@ -62,7 +62,7 @@ tdr_proc <- function(x) {
       .data$TEMP,
       .data$DEPTH
     ) %>%
-    write_csv(paste0(
+    write_csv(paste0("R:/Science/CESD/COERS/FPage/data/TDR/data/for_oracle_import/",
       last(.data$YEAR),
       "-",
       str_pad(last(.data$MONTH), 2, "left", "0"),
