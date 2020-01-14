@@ -51,8 +51,8 @@ tdr_proc <- function(x) {
       HOUR = hour(datet),
       MINUTE = minute(datet),
       STATION = 1,
-      TEMP = temp,
-      DEPTH = press
+      TEMP = format(round(temp, 2), nsmall =2),
+      DEPTH = format(round(press, 4), nsmall = 4)
     ) %>%
     select(STATION,
            SDATE,
