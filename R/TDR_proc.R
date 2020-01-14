@@ -25,49 +25,46 @@
 #' @importFrom rlang .data
 
 tdr_proc <- function(x) {
-  requires(tidyr)
-  requires(lubridate)
-
   raw <-
     read_csv(x, skip = 1)
 
   raw %>%
     rename_all( ~ c("id", "datet", "press", "temp", "depth")) %>%
     mutate(
-      datet = mdy_hms(.data$datet),
+      datet = mdy_hms(datet),
       SDATE = paste0(
-        day(.data$datet),
+        day(datet),
         "-",
-        month(.data$datet, label = TRUE, abbr = TRUE),
+        month(datet, label = TRUE, abbr = TRUE),
         "-",
-        format(.data$datet, "%y")
+        year(datet), " ", hour(datet), ":", minute(datet), ":", second(datet)
       ),
-      YEAR = year(.data$datet),
-      MONTH = month(.data$datet),
-      DAY = day(.data$datet),
-      HOUR = hour(.data$datet),
-      MINUTE = minute(.data$datet),
+      YEAR = year(datet),
+      MONTH = month(datet),
+      DAY = day(datet),
+      HOUR = hour(datet),
+      MINUTE = minute(datet),
       STATION = 1,
-      TEMP = .data$temp,
-      DEPTH = .data$press
+      TEMP = temp,
+      DEPTH = press
     ) %>%
     select(
-      .data$STATION,
-      .data$SDATE,
-      .data$YEAR,
-      .data$MONTH,
-      .data$DAY,
-      .data$HOUR,
-      .data$MINUTE,
-      .data$TEMP,
-      .data$DEPTH
+      STATION,
+      SDATE,
+      YEAR,
+      MONTH,
+      DAY,
+      HOUR,
+      MINUTE,
+      TEMP,
+      DEPTH
     ) %>%
     write_csv(paste0("R:/Science/CESD/COERS/FPage/data/TDR/data/for_oracle_import/",
-      last(.data$YEAR),
+      last(.$YEAR),
       "-",
-      str_pad(last(.data$MONTH), 2, "left", "0"),
+      str_pad(last(.$MONTH), 2, "left", "0"),
       "-",
-      str_pad(last(.data$DAY), 2, "left", "0"),
+      str_pad(last(.$DAY), 2, "left", "0"),
       "_SABS_warf_water_temperature_data.csv"
     ))
 }
