@@ -58,7 +58,7 @@ wind_proc <-
           "-",
           month(.$date, label = TRUE, abbr = TRUE),
           "-",
-          format(.$date, "%y"), " ", hour(.$date), ":", minute(.$date), ":", second(.$date)
+          format(.$date, "%y"), " ", hour(.$time), ":", minute(.$time), ":", second(.$time)
         ),
         YEAR = year(date),
         MONTH = month(date),
