@@ -31,7 +31,7 @@ tdr_proc <- function(x) {
   raw %>%
     rename_all(~ c("id", "datet", "press", "temp", "depth")) %>%
     mutate(
-      datet = mdy_hms(datet),
+      datet = mdy_hm(datet),
       SDATE = paste0(
         day(datet),
         "-",
