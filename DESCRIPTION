@@ -1,0 +1,14 @@
+Package: CESD
+Type: Package
+Title: R packages for the Coastal Ecosystem Science Division (CESD)
+Version: 0.1.0
+Author: Peter Kraska
+Maintainer: Peter Kraska <peter.kraska@dfo-mpo.gc.ca>
+Description: This is a package for data management tasks within the Coastal 
+    Ecosystem Science Division (CESD) that were being performed using separate 
+    scripts or being done manually. 
+    castaway_[function] functions relate to processing castaway CTD data
+License: MIT
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.1
