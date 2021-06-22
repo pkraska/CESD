@@ -3,5 +3,5 @@
 .RData
 .Ruserdata
 .Rbuildignore
-/CESD.Rproj
+CESD.Rproj
 .Rprofile
