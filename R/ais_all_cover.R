@@ -1,5 +1,4 @@
-#' Aquatic Invasive Species (AIS) annual biofouling presence/absence data
-#' amalgamation
+#' Aquatic Invasive Species (AIS) annual biofouling abundance data amalgamation
 #'
 #' @param input character string to a directory holding only the final yearly
 #'   summary data for the presence/absence data in CSV format
@@ -18,7 +17,7 @@
 #' @import stringr
 #'
 
-ais_all_presence <- function(input, output) {
+ais_all_abundance <- function(input, output) {
   file_list <-
     list.files(path = input,
                pattern = "*.csv",
@@ -39,7 +38,7 @@ ais_all_presence <- function(input, output) {
       longitude = Longitude,
       everything()
     ) %>%
-    pivot_longer(!1:6, names_to = "species_name", values_to = "presence") %>%
+    pivot_longer(!1:6, names_to = "species_name", values_to = "index") %>%
     mutate(species_name = str_replace(species_name, pattern = "_", replacement = " "))
 
   message(paste0(all_data$year[1], " complete."))
@@ -55,7 +54,7 @@ ais_all_presence <- function(input, output) {
         longitude = Longitude,
         everything()
       ) %>%
-      pivot_longer(!1:6, names_to = "species_name", values_to = "presence") %>%
+      pivot_longer(!1:6, names_to = "species_name", values_to = "index") %>%
       mutate(species_name = str_replace(species_name, pattern = "_", replacement = " "))
 
     message(paste0(yearly_data$year[1], " complete."))
@@ -67,7 +66,7 @@ ais_all_presence <- function(input, output) {
   arrange(all_data, year, stn_num)
 
   write_csv(all_data,
-            paste0(output, "AIS_biofouling_allyears_presence_absence.csv"))
+            paste0(output, "AIS_biofouling_allyears_abundance.csv"))
 
   message(
     paste0(
