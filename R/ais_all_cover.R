@@ -66,7 +66,7 @@ ais_all_abundance <- function(input, output) {
   arrange(all_data, year, stn_num)
 
   write_csv(all_data,
-            paste0(output, "AIS_biofouling_allyears_abundance.csv"))
+            paste0(output, "AIS_biofouling_allyears_abundance.csv"), na = "")
 
   message(
     paste0(
