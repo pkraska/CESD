@@ -5,3 +5,5 @@
 .Rbuildignore
 CESD.Rproj
 .Rprofile
+renv
+renv.lock
