@@ -6,22 +6,22 @@
 #' @export
 #'
 #' @examples aisIndex_to_OBIS_occurenceCore("file.csv")
-#' 
+#'
 #' @import readr
 #' @import worms
 #' @import dplyr
-#' 
+#'
 
 aisIndex_to_OBIS_occurenceCore <- function(file) {
   unique_spp <- readr::read_csv(file) %>%
     dplyr::select(species_name) %>%
     dplyr::distinct()
-
+  
   worms <-
     worms::wormsbymatchnames(taxon_names = unique_spp$species_name) %>%
     dplyr::select(scientificname, lsid)
   
-  read_csv(file) %>%
+  readr::read_csv(file) %>%
     dplyr::left_join(worms, by = c("species_name" = "scientificname")) %>%
     dplyr::mutate(
       occurrenceID = paste0(.$year, "-", .$stn_num, "-", .$species_name),
@@ -46,4 +46,3 @@ aisIndex_to_OBIS_occurenceCore <- function(file) {
       basisOfRecord
     )
 }
-

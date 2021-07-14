@@ -17,8 +17,8 @@
 lttm_convert_odf_to_nc <- function(input, output) {
   # Create OCE object from ODF file
   message(paste0("processing file ", input))
-  odf <- oce::read.odf(input,debug = 1)
-
+  odf <- oce::read.odf(input, debug = 1)
+  
   # create netCDF dimensions and variables
   dimLon <-
     ncdf4::ncdim_def(
@@ -27,31 +27,31 @@ lttm_convert_odf_to_nc <- function(input, output) {
       longname = 'Longitude',
       vals = as.numeric(odf[['initialLongitude']])
     )
-
+  
   dimLat <-
-     ncdf4::ncdim_def(
+    ncdf4::ncdim_def(
       name = 'lat',
       units = 'degrees_north',
       longname = 'Latitude',
       vals = as.numeric(odf[['initialLatitude']])
     )
-
+  
   dimDepth <-
-     ncdf4::ncdim_def(
+    ncdf4::ncdim_def(
       name = 'depth',
       units = 'm',
       longname = 'meters below sealevel',
       vals = as.numeric(odf[['depthMax']])
     )
-
+  
   dimTime <-
-     ncdf4::ncdim_def(
+    ncdf4::ncdim_def(
       name = 'time',
       units = 'seconds since 1970-01-01',
       longname = 'Time',
       vals = as.numeric(odf[['time']])
     )
-
+  
   varTemperature <- ncdf4::ncvar_def(
     name = 'WC_temp_CTD',
     units = 'degrees C',
@@ -60,30 +60,29 @@ lttm_convert_odf_to_nc <- function(input, output) {
     longname = 'Temperature of the water body by CTD or STD',
     prec = 'double'
   )
-
-
+  
+  
   odf_nc <-
-    ncdf4::nc_create(
-      paste0(output,
-        odf[['cruiseNumber']],
-        "_",
-        format(odf[['startTime']], format = "%Y_%m_%d"),
-        "_",
-        odf[['model']],
-        "_",
-        odf[['serialNumber']] ,
-        ".nc"
-      ),
-      vars = varTemperature
-    )
-
+    ncdf4::nc_create(paste0(
+      output,
+      odf[['cruiseNumber']],
+      "_",
+      format(odf[['startTime']], format = "%Y_%m_%d"),
+      "_",
+      odf[['model']],
+      "_",
+      odf[['serialNumber']] ,
+      ".nc"
+    ),
+    vars = varTemperature)
+  
   ncdf4::ncvar_put(
     odf_nc,
     varid = varTemperature,
     vals = odf[['temperature']],
-    count = c(1, 1, 1,-1)
+    count = c(1, 1, 1, -1)
   )
-
-
+  
+  
   ncdf4::nc_close(odf_nc)
 }

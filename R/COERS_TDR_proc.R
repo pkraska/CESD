@@ -19,19 +19,20 @@
 #' @import readr
 #' @import lubridate
 #' @import dplyr
-#' 
+#'
 #' @return
 #' @export
-#' 
+#'
 #' @examples tdr_proc('hobo_data_file.csv')
 #' @importFrom rlang .data
+#'
 
 tdr_proc <- function(x) {
   raw <-
     readr::read_csv(x, skip = 1)
-
+  
   raw %>%
-    dplyr::rename_all(~ c("id", "datet", "press", "temp", "depth")) %>%
+    dplyr::rename_all( ~ c("id", "datet", "press", "temp", "depth")) %>%
     dplyr::mutate(
       datet = lubridate::mdy_hm(datet),
       SDATE = paste0(
@@ -41,7 +42,12 @@ tdr_proc <- function(x) {
         "-",
         lubridate::year(datet),
         " ",
-        stringr::str_pad(lubridate::hour(datet), width = 2, side = 'left', 0),
+        stringr::str_pad(
+          lubridate::hour(datet),
+          width = 2,
+          side = 'left',
+          0
+        ),
         ":",
         stringr::str_pad(lubridate::minute(datet), 2, 'left', pad = 0),
         ":",
@@ -53,18 +59,18 @@ tdr_proc <- function(x) {
       HOUR = lubridate::hour(datet),
       MINUTE = lubridate::minute(datet),
       STATION = 1,
-      TEMP = format(round(temp, 2), nsmall =2),
+      TEMP = format(round(temp, 2), nsmall = 2),
       DEPTH = format(round(press, 4), nsmall = 4)
     ) %>%
     dplyr::select(STATION,
-           SDATE,
-           YEAR,
-           MONTH,
-           DAY,
-           HOUR,
-           MINUTE,
-           TEMP,
-           DEPTH) %>%
+                  SDATE,
+                  YEAR,
+                  MONTH,
+                  DAY,
+                  HOUR,
+                  MINUTE,
+                  TEMP,
+                  DEPTH) %>%
     readr::write_csv(
       paste0(
         "R:/Science/CESD/COERS/FPage/data/TDR/for_oracle_import/",

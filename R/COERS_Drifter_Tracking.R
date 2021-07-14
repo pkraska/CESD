@@ -16,8 +16,7 @@
 #' @import lubridate
 #' @import later
 #' @import dplyr
-
-
+#'
 
 drifter_tracking <- function(interval = 120, password) {
   files <- c("C:/DFO-MPO/test_coords.csv")
@@ -25,7 +24,7 @@ drifter_tracking <- function(interval = 120, password) {
     if (file.exists(files))
       file.remove(files)
   }
-
+  
   spot_json <-
     jsonlite::fromJSON(
       paste0(
@@ -33,7 +32,7 @@ drifter_tracking <- function(interval = 120, password) {
         password
       )
     )
-
+  
   all_json <-
     tibble::tibble(
       messengerName = NA,
@@ -42,7 +41,7 @@ drifter_tracking <- function(interval = 120, password) {
       longitude = NA,
       datetime = NA
     )
-
+  
   tracking_json <-
     tibble::as_tibble(spot_json[[1]]$`feedMessageResponse`$messages$`message`) %>%
     dplyr::select(messengerName, messageType, latitude, longitude, dateTime) %>%
@@ -52,9 +51,9 @@ drifter_tracking <- function(interval = 120, password) {
     dplyr::group_by(messengerName) %>%
     dplyr::filter(dateTime == max(dateTime)) %>%
     dplyr::filter(messageType != "POWER-OFF")
-
+  
   readr::write_csv(tracking_json, "C:/DFO-MPO/drifter_coords.csv", col_names = TRUE)
-
+  
   if (dim(tracking_json)[1] == 0) {
     print("Nothing to see here, move along...")
     stop()
@@ -66,13 +65,13 @@ drifter_tracking <- function(interval = 120, password) {
         for (i in 1:dim(tracking_json[2])) {
           tracking_json$messengerName[i]
         }
-
+        
         ,
         "\ntype `stop()` in the terminal to stop this function from running."
       )
     ))
   }
-
+  
   # beep("ping")
   tracking_json$messengerName
   # active_units <- tracking_json %>%
@@ -83,6 +82,6 @@ drifter_tracking <- function(interval = 120, password) {
   #   write_csv("C:/DFO-MPO/drifter_coords.csv", col_names = TRUE)
   # print(Sys.time())
   # beep("ping")
-
+  
   later::later(drifter_tracking, interval)
 }

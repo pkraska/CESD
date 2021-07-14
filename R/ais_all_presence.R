@@ -23,12 +23,12 @@ ais_all_presence <- function(input, output) {
     list.files(path = input,
                pattern = "*.csv",
                full.names = TRUE)
-
+  
   if (!dir.exists(output)) {
     dir.create(output)
   }
-
-
+  
+  
   all_data <- readr::read_csv(file_list[1], col_types = cols()) %>%
     dplyr::select(
       year = Year_Observed ,
@@ -41,9 +41,9 @@ ais_all_presence <- function(input, output) {
     ) %>%
     tidyr::pivot_longer(!1:6, names_to = "species_name", values_to = "presence") %>%
     dplyr::mutate(species_name = stringr::str_replace(species_name, pattern = "_", replacement = " "))
-
+  
   message(paste0(all_data$year[1], " complete."))
-
+  
   for (file in file_list[-1]) {
     yearly_data <- readr::read_csv(file, col_types = cols()) %>%
       dplyr::select(
@@ -57,18 +57,19 @@ ais_all_presence <- function(input, output) {
       ) %>%
       tidyr::pivot_longer(!1:6, names_to = "species_name", values_to = "presence") %>%
       dplyr::mutate(species_name = str_replace(species_name, pattern = "_", replacement = " "))
-
+    
     message(paste0(yearly_data$year[1], " complete."))
-
+    
     all_data <- all_data %>%
       dplyr::bind_rows(yearly_data)
   }
-
+  
   dplyr::arrange(all_data, year, stn_num)
-
+  
   readr::write_csv(all_data,
-            paste0(output, "AIS_biofouling_allyears_presence_absence.csv"), na = "")
-
+                   paste0(output, "AIS_biofouling_allyears_presence_absence.csv"),
+                   na = "")
+  
   message(
     paste0(
       "Complete AIS biofouling data file to be sent to ODIS Data Shop for publication can be found here: ",

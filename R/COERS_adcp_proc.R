@@ -8,18 +8,19 @@
 #'
 #' @export
 #' @return list of the raw, header, and body data.
-#' 
+#'
 #' @examples ADCP_proc(x)
 #'
 #' @import readr
 #' @import tidyr
 #' @import tibble
 #' @import dplyr
+#'
 
 ADCP_proc <- function(x) {
   raw <- read_lines(x) %>%
     tibble::as_tibble() %>%
-    tidyr::separate(value, sep =  "\\s+", into = paste0("V", seq(1,14, by = 1)))  %>%
+    tidyr::separate(value, sep =  "\\s+", into = paste0("V", seq(1, 14, by = 1)))  %>%
     dplyr::mutate(
       header = dplyr::case_when(
         V2 == "cm" ~ TRUE,
@@ -32,7 +33,7 @@ ADCP_proc <- function(x) {
       )
     ) %>%
     dplyr::filter(!is.na(V2))
-    
+  
   
   # Function to take the 6 rows identified as the header, and widen them/unstack
   # them into a single line.

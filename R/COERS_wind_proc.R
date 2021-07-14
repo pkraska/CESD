@@ -22,12 +22,13 @@
 #' @import readr
 #' @import lubridate
 #' @import dplyr
-#' 
+#'
 #' @return
 #' @export
 #'
 #' @examples wind_proc(x)
 #'
+
 
 wind_proc <-
   function(x,
@@ -60,7 +61,13 @@ wind_proc <-
           "-",
           lubridate::month(.$date, label = TRUE, abbr = TRUE),
           "-",
-          format(.$date, "%y"), " ", lubridate::hour(.$time), ":", lubridate::minute(.$time), ":", lubridate::second(.$time)
+          format(.$date, "%y"),
+          " ",
+          lubridate::hour(.$time),
+          ":",
+          lubridate::minute(.$time),
+          ":",
+          lubridate::second(.$time)
         ),
         YEAR = lubridate::year(date),
         MONTH = lubridate::month(date),
