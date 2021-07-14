@@ -11,9 +11,11 @@
 #'
 #' @examples drifter_tracking(interval = 120, password = 'something')
 #' @import jsonlite
-#' @import tidyverse
+#' @import tibble
+#' @import readr
 #' @import lubridate
 #' @import later
+#' @import dplyr
 
 
 
@@ -25,7 +27,7 @@ drifter_tracking <- function(interval = 120, password) {
   }
 
   spot_json <-
-    fromJSON(
+    jsonlite::fromJSON(
       paste0(
         "https://api.findmespot.com/spot-main-web/consumer/rest-api/2.0/public/feed/1zCGHaheJeh4l3Gqor3GOl4Yd2pxzpgTh/message.json?feedPassword=",
         password
@@ -33,7 +35,7 @@ drifter_tracking <- function(interval = 120, password) {
     )
 
   all_json <-
-    tibble(
+    tibble::tibble(
       messengerName = NA,
       messageType = NA,
       latitude = NA,
@@ -42,16 +44,16 @@ drifter_tracking <- function(interval = 120, password) {
     )
 
   tracking_json <-
-    as_tibble(spot_json[[1]]$`feedMessageResponse`$messages$`message`) %>%
-    select(messengerName, messageType, latitude, longitude, dateTime) %>%
-    bind_rows(all_json, .) %>%
-    distinct() %>%
-    mutate(dateTime = ymd_hms(dateTime)) %>%
-    group_by(messengerName) %>%
-    filter(dateTime == max(dateTime)) %>%
-    filter(messageType != "POWER-OFF")
+    tibble::as_tibble(spot_json[[1]]$`feedMessageResponse`$messages$`message`) %>%
+    dplyr::select(messengerName, messageType, latitude, longitude, dateTime) %>%
+    dplyr::bind_rows(all_json, .) %>%
+    dplyr::distinct() %>%
+    dplyr::mutate(dateTime = ymd_hms(dateTime)) %>%
+    dplyr::group_by(messengerName) %>%
+    dplyr::filter(dateTime == max(dateTime)) %>%
+    dplyr::filter(messageType != "POWER-OFF")
 
-  write_csv(tracking_json, "C:/DFO-MPO/drifter_coords.csv", col_names = TRUE)
+  readr::write_csv(tracking_json, "C:/DFO-MPO/drifter_coords.csv", col_names = TRUE)
 
   if (dim(tracking_json)[1] == 0) {
     print("Nothing to see here, move along...")
@@ -82,5 +84,5 @@ drifter_tracking <- function(interval = 120, password) {
   # print(Sys.time())
   # beep("ping")
 
-  later(drifter_tracking, interval)
+  later::later(drifter_tracking, interval)
 }

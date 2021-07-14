@@ -11,10 +11,10 @@
 #'
 #' @examples
 #'
-#' @import dplyr
 #' @import readr
 #' @import tidyr
 #' @import stringr
+#' @import dplyr
 #'
 
 ais_all_abundance <- function(input, output) {
@@ -28,8 +28,8 @@ ais_all_abundance <- function(input, output) {
   }
 
 
-  all_data <- read_csv(file_list[1], col_types = cols()) %>%
-    select(
+  all_data <- readr::read_csv(file_list[1], col_types = cols()) %>%
+    dplyr::select(
       year = Year_Observed ,
       stn_num = StnNum,
       stn_location = StnLocation,
@@ -38,14 +38,14 @@ ais_all_abundance <- function(input, output) {
       longitude = Longitude,
       everything()
     ) %>%
-    pivot_longer(!1:6, names_to = "species_name", values_to = "index") %>%
-    mutate(species_name = str_replace(species_name, pattern = "_", replacement = " "))
+    tidyr::pivot_longer(!1:6, names_to = "species_name", values_to = "index") %>%
+    dplyr::mutate(species_name = str_replace(species_name, pattern = "_", replacement = " "))
 
   message(paste0(all_data$year[1], " complete."))
 
   for (file in file_list[-1]) {
-    yearly_data <- read_csv(file, col_types = cols()) %>%
-      select(
+    yearly_data <- readr::read_csv(file, col_types = cols()) %>%
+      dplyr::select(
         year = Year_Observed ,
         stn_num = StnNum,
         stn_location = StnLocation,
@@ -54,18 +54,18 @@ ais_all_abundance <- function(input, output) {
         longitude = Longitude,
         everything()
       ) %>%
-      pivot_longer(!1:6, names_to = "species_name", values_to = "index") %>%
-      mutate(species_name = str_replace(species_name, pattern = "_", replacement = " "))
+      tidyr::pivot_longer(!1:6, names_to = "species_name", values_to = "index") %>%
+      dplyr::mutate(species_name = stringr::str_replace(species_name, pattern = "_", replacement = " "))
 
     message(paste0(yearly_data$year[1], " complete."))
 
     all_data <- all_data %>%
-      bind_rows(yearly_data)
+      dplyr::bind_rows(yearly_data)
   }
 
-  arrange(all_data, year, stn_num)
+  dplyr::arrange(all_data, year, stn_num)
 
-  write_csv(all_data,
+  readr::write_csv(all_data,
             paste0(output, "AIS_biofouling_allyears_abundance.csv"), na = "")
 
   message(

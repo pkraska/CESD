@@ -38,6 +38,8 @@ measurements in decimal degrees WGS84}
 Returns a comma delimited text file in
   `R:/Science/CESD/COERS/FPage/data/Wind logger/FOR ORACLE IMPORT/` for
   upload to PTRAN by COERS staff.
+
+
 }
 \description{
 SABS wharf long term wind speed and direction logging data transformation

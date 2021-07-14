@@ -19,9 +19,11 @@
 #'   `R:/Science/CESD/COERS/FPage/data/Wind logger/FOR ORACLE IMPORT/` for
 #'   upload to PTRAN by COERS staff.
 #'
-#' @import tidyverse
+#' @import readr
 #' @import lubridate
-#'
+#' @import dplyr
+#' 
+#' @return
 #' @export
 #'
 #' @examples wind_proc(x)
@@ -34,7 +36,7 @@ wind_proc <-
            latitude = 45.08275,
            longitude = 67.08508,
            area = "SABS Wharf") {
-    read_csv(
+    readr::read_csv(
       x,
       skip = 2,
       col_names = c("date", "time", "key", "value", "unit", "x"),
@@ -49,22 +51,22 @@ wind_proc <-
       trim_ws = TRUE,
       skip_empty_rows = TRUE
     ) %>%
-      pivot_wider(names_from = c(key, unit), values_from = value) %>%
-      mutate(
+      tidyr::pivot_wider(names_from = c(key, unit), values_from = value) %>%
+      dplyr::mutate(
         STATION = station,
         GAUGENUM = gaugenum,
         SDATE = paste0(
-          day(.$date),
+          lubridate::day(.$date),
           "-",
-          month(.$date, label = TRUE, abbr = TRUE),
+          lubridate::month(.$date, label = TRUE, abbr = TRUE),
           "-",
-          format(.$date, "%y"), " ", hour(.$time), ":", minute(.$time), ":", second(.$time)
+          format(.$date, "%y"), " ", lubridate::hour(.$time), ":", lubridate::minute(.$time), ":", lubridate::second(.$time)
         ),
-        YEAR = year(date),
-        MONTH = month(date),
-        DAY = day(date),
-        HOUR = hour(time),
-        MINUTES = minute(time),
+        YEAR = lubridate::year(date),
+        MONTH = lubridate::month(date),
+        DAY = lubridate::day(date),
+        HOUR = lubridate::hour(time),
+        MINUTES = lubridate::minute(time),
         SPEED = trimws(format(round(`WndSpd_m/s`, 2), nsmall = 2)),
         DIRECTION = trimws(format(round(WndDir_Degrees, 2), nsmall = 2)),
         LATITUDE = format(round(latitude, 5), nsmall = 5),
@@ -72,14 +74,14 @@ wind_proc <-
         AREA = area
       ) %>%
       select(-1:-5) %>%
-      write.csv(
+      readr::write_csv(
         paste0(
           "R:/Science/CESD/COERS/FPage/data/wind/for_oracle_import/",
-          last(.$YEAR),
+          dplyr::last(.$YEAR),
           "-",
-          str_pad(last(.$MONTH), 2, "left", "0"),
+          stringr::str_pad(dplyr::last(.$MONTH), 2, "left", "0"),
           "-",
-          str_pad(last(.$DAY), 2, "left", "0"),
+          stringr::str_pad(dplyr::last(.$DAY), 2, "left", "0"),
           "_SABS_wharf_wind_data.csv"
         ),
         row.names = FALSE

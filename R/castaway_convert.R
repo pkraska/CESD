@@ -14,13 +14,12 @@
 #'
 #' @examples castaway_convert("data/")
 #'
-#' @import dplyr
 #' @import tidyr
 #' @import stringr
 #' @import readr
 #' @import ncdf4
 #' @import lubridate
-#'
+#' @import dplyr
 
 castaway_convert <-
   function(files,

@@ -13,6 +13,8 @@ with a 6 line header and a single extra line at the start of the data.}
 \value{
 A list composed of the raw data, the flattened header information, as
   well as the actual ensemble data.
+
+list of the raw, header, and body data.
 }
 \description{
 Converting ADCP ensembles into a header and ensemble data tables

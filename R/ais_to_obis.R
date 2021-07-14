@@ -1,35 +1,39 @@
-# This is a script to convert the AIS index data to DwC compliant format for
-# uploading to OBIS. This script is reliant on first running
-# 01-AIS_annual_cover_index.R and creating a CSV file to be given as a path to
-# the following function
-# 
-# require(readr)
-# require(dplyr)
-# require(worms)
-
+#' AIS Biofouling to OBIS Occurence Darwin Core (DwC)
+#'
+#' @param file CSV formatted file created using \code{ais_all_presence}
+#'
+#' @return
+#' @export
+#'
+#' @examples aisIndex_to_OBIS_occurenceCore("file.csv")
+#' 
+#' @import readr
+#' @import worms
+#' @import dplyr
+#' 
 
 aisIndex_to_OBIS_occurenceCore <- function(file) {
-  unique_spp <- read_csv(file) %>%
-    select(species_name) %>%
-    distinct()
+  unique_spp <- readr::read_csv(file) %>%
+    dplyr::select(species_name) %>%
+    dplyr::distinct()
 
   worms <-
-    wormsbymatchnames(taxon_names = unique_spp$species_name) %>%
-    select(scientificname, lsid)
+    worms::wormsbymatchnames(taxon_names = unique_spp$species_name) %>%
+    dplyr::select(scientificname, lsid)
   
   read_csv(file) %>%
-    left_join(worms, by = c("species_name" = "scientificname")) %>%
-    mutate(
+    dplyr::left_join(worms, by = c("species_name" = "scientificname")) %>%
+    dplyr::mutate(
       occurrenceID = paste0(.$year, "-", .$stn_num, "-", .$species_name),
       eventDate = paste0(year, "-01-01")  ,
-      occurrenceStatus = case_when(
+      occurrenceStatus = dplyr::case_when(
         cover_index > 0 ~ "present",
         cover_index == 0 ~ "absent",
         TRUE ~ NA_character_
       ),
       basisOfRecord = "HumanObservation"
     ) %>%
-    select(
+    dplyr::select(
       occurrenceID,
       eventDate,
       decimalLongitude = longitude,
@@ -43,6 +47,3 @@ aisIndex_to_OBIS_occurenceCore <- function(file) {
     )
 }
 
-aisIndex_to_OBIS_occurence_eMoF <- function(file) {
-  
-}

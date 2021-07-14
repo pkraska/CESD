@@ -17,11 +17,11 @@
 lttm_convert_odf_to_nc <- function(input, output) {
   # Create OCE object from ODF file
   message(paste0("processing file ", input))
-  odf <- read.odf(input,debug = 1)
+  odf <- oce::read.odf(input,debug = 1)
 
   # create netCDF dimensions and variables
   dimLon <-
-    ncdim_def(
+    ncdf4::ncdim_def(
       name = 'lon',
       units = 'degrees_east',
       longname = 'Longitude',
@@ -29,7 +29,7 @@ lttm_convert_odf_to_nc <- function(input, output) {
     )
 
   dimLat <-
-    ncdim_def(
+     ncdf4::ncdim_def(
       name = 'lat',
       units = 'degrees_north',
       longname = 'Latitude',
@@ -37,7 +37,7 @@ lttm_convert_odf_to_nc <- function(input, output) {
     )
 
   dimDepth <-
-    ncdim_def(
+     ncdf4::ncdim_def(
       name = 'depth',
       units = 'm',
       longname = 'meters below sealevel',
@@ -45,14 +45,14 @@ lttm_convert_odf_to_nc <- function(input, output) {
     )
 
   dimTime <-
-    ncdim_def(
+     ncdf4::ncdim_def(
       name = 'time',
       units = 'seconds since 1970-01-01',
       longname = 'Time',
       vals = as.numeric(odf[['time']])
     )
 
-  varTemperature <- ncvar_def(
+  varTemperature <- ncdf4::ncvar_def(
     name = 'WC_temp_CTD',
     units = 'degrees C',
     dim = list(dimLon, dimLat, dimDepth, dimTime),
@@ -63,7 +63,7 @@ lttm_convert_odf_to_nc <- function(input, output) {
 
 
   odf_nc <-
-    nc_create(
+    ncdf4::nc_create(
       paste0(output,
         odf[['cruiseNumber']],
         "_",
@@ -77,7 +77,7 @@ lttm_convert_odf_to_nc <- function(input, output) {
       vars = varTemperature
     )
 
-  ncvar_put(
+  ncdf4::ncvar_put(
     odf_nc,
     varid = varTemperature,
     vals = odf[['temperature']],
@@ -85,5 +85,5 @@ lttm_convert_odf_to_nc <- function(input, output) {
   )
 
 
-  nc_close(odf_nc)
+  ncdf4::nc_close(odf_nc)
 }
