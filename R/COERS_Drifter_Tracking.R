@@ -14,7 +14,7 @@
 #' @import tidyverse
 #' @import lubridate
 #' @import later
-#' @import beepr
+
 
 
 drifter_tracking <- function(interval = 120, password) {
@@ -71,7 +71,7 @@ drifter_tracking <- function(interval = 120, password) {
     ))
   }
 
-  beep("ping")
+  # beep("ping")
   tracking_json$messengerName
   # active_units <- tracking_json %>%
   #   mutate(dateTime = ymd_hms(dateTime)) %>%
