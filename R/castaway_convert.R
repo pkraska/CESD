@@ -1,12 +1,26 @@
 #' Castaway CTD to netCDF conversion
 #'
-#' @param files A character vector of a directory in which castaway CTD CSV
-#'   files are stored.
+#' @param files A character vector of castaway CTD files in CSV format to
+#'   process
 #' @param destination an existing folder to save netCDF files to
-#' @param level either \code{raw} or \code{processed} based on the level of
-#'   processing completed using the castaway CTD software
-#' @param project_lead an optional field to add the project lead's name to the file global attributes
-#' @param project_name an optional field to add a project name to the file global attributes
+#' @param project_lead  an optional field to add the project lead's name to the
+#'   file global attributes
+#' @param cf_title  an optional field to add to the generated NetCDF file's
+#'   global attributes (required for CF compliant NetCDF file creation)
+#' @param cf_institute  an optional field to add to the generated NetCDF file's
+#'   global attributes (required for CF compliant NetCDF file creation)
+#' @param cf_source  an optional field to add to the generated NetCDF file's
+#'   global attributes (required for CF compliant NetCDF file creation)
+#' @param cf_history  an optional field to add to the generated NetCDF file's
+#'   global attributes (required for CF compliant NetCDF file creation)
+#' @param cf_references  an optional field to add to the generated NetCDF file's
+#'   global attributes (required for CF compliant NetCDF file creation)
+#' @param cf_comment  an optional field to add to the generated NetCDF file's
+#'   global attributes (required for CF compliant NetCDF file creation)
+#' @param cf_author  an optional field to add to the generated NetCDF file's
+#'   global attributes (required for CF compliant NetCDF file creation)
+#' @param creation_date creation date to append to the global attributes of the
+#'   NetCDF file
 #'
 #' @return \code{castaway_convert()} creates netCDF files from castaway CTD CSV
 #'   files
@@ -14,96 +28,125 @@
 #'
 #' @examples castaway_convert("data/")
 #'
+#' @import dplyr
+#' @import magrittr
 #' @import tidyr
 #' @import stringr
 #' @import readr
 #' @import ncdf4
 #' @import lubridate
-#' @import dplyr
+#'
 
 castaway_convert <-
   function(files,
            destination = "R:/Science/CESD/CESD_DataManagement/data_out/castawayCTD",
-           level = "raw",
-           project_lead,
-           project_name) {
+           project_lead = "",
+           cf_title = c(
+             "Maritime Ecosystem and Ocean Science Castaway CTD data archive – Raw / Archives des données CTD des écosystèmes maritimes et des sciences océaniques – Brutes",
+             "Maritime Ecosystem and Ocean Science Castaway CTD data archive – Processed / Archives des données CTD des écosystèmes maritimes et des sciences océaniques – Traitées"
+           ),
+           cf_institute = c("BIO", "SABS"),
+           cf_source = "Castaway CTD data collected as part of Fisheries and Oceans Canada (DFO) science activities in the Maritime region of Canada",
+           cf_history = "",
+           cf_references = "",
+           cf_comment = "",
+           cf_author = "Peter Kraska, CESD Divisional data Manager <Peter.Kraska@DFO-MPO.gc.ca>",
+           creation_date =  format(x = Sys.time(), tz = "GMT", format = "%FT%H:%M%SZ"),
+           conventions = "CF-1.8") {
     for (i in files) {
       # read data file
       data <- readLines(i) %>%
-        as_tibble() %>%
-        mutate(header = grepl("% ", value))
+        dplyr::as_tibble() %>%
+        dplyr::mutate(header = grepl("% ", value))
       
       
       cast_header <- data %>%
-        filter(header == TRUE) %>%
-        select(value) %>%
-        separate(
+        dplyr::filter(header == TRUE) %>%
+        dplyr::select(value) %>%
+        tidyr::separate(
           value,
           into = c("key", "value"),
           sep = ",",
           fill = 'right'
         ) %>%
-        mutate(
-          key = str_replace(
-            string = .$key,
+        dplyr::mutate(
+          key = tolower(key),
+          key = stringr::str_replace(
+            string = key,
             pattern = "% ",
             replacement = ""
           ),
-          key = str_trim(string = key, side = "both"),
-          value = str_trim(string = value, side = "both")
+          key = stringr::str_trim(string = key, side = "both"),
+          key = stringr::str_replace_all(
+            string = key,
+            pattern = " ",
+            replacement = "_"
+          ),
+          key = stringr::str_remove_all(
+            string = key,
+            pattern = "\\("
+            ),
+          key = stringr::str_replace_all(
+            string = key,
+            pattern = "\\)",
+            replacement = ""
+          ),
+          value = stringr::str_trim(string = value, side = "both")
         ) %>%
-        filter(key != "")
+        dplyr::filter(key != "")
       
       castaway_data_cols <- data %>%
-        slice(sum(data$header) + 1) %>%
-        select(value) %>%
-        str_replace_all(pattern = " ", replacement = "_") %>%
-        str_replace_all(pattern = "\\(", replacement = "") %>%
-        str_replace_all(pattern = "\\)", replacement = "") %>%
-        str_to_lower() %>%
-        str_split(pattern = ",") %>%
+        dplyr::slice(sum(data$header) + 1) %>%
+        dplyr::select(value) %>%
+        stringr::str_replace_all(pattern = " ", replacement = "_") %>%
+        stringr::str_replace_all(pattern = "\\(", replacement = "") %>%
+        stringr::str_replace_all(pattern = "\\)", replacement = "") %>%
+        stringr::str_to_lower() %>%
+        stringr::str_split(pattern = ",") %>%
         unlist()
       
       cast_data <- data %>%
-        filter(header == FALSE) %>%
-        select(value) %>%
-        slice(-1) %>%
-        separate(
+        dplyr::filter(header == FALSE) %>%
+        dplyr::select(value) %>%
+        dplyr::slice(-1) %>%
+        tidyr::separate(
           col = value,
           into = castaway_data_cols,
           sep = ",",
           convert = TRUE
         )
-      if (cast_header$value[cast_header$key == 'Cast data'] == "Raw") {
+      if (cast_header$value[cast_header$key == 'cast_data'] == "Raw") {
         # Dimensions
         # Castaway data will be treated as a single dimension profile datatype
         
         dimLon <-
-          ncdim_def(
+          ncdf4::ncdim_def(
             name = 'lon',
             units = 'degrees_east',
             longname = 'Longitude',
-            vals = as.numeric(cast_header$value[cast_header$key == 'Start longitude'])
+            vals = as.numeric(cast_header$value[cast_header$key == 'start_longitude'])
           )
         
         dimLat <-
-          ncdim_def(
+          ncdf4::ncdim_def(
             name = 'lat',
             units = 'degrees_north',
             longname = 'Latitude',
-            vals = as.numeric(cast_header$value[cast_header$key == 'Start latitude'])
+            vals = as.numeric(cast_header$value[cast_header$key == 'start_latitude'])
           )
         
         dimTime <-
-          ncdim_def(
+          ncdf4::ncdim_def(
             name = 'time',
             units = 'seconds since 1970-01-01',
             longname = 'Time',
-            vals = as.numeric(ymd_hms(cast_header$value[cast_header$key == 'Cast time (UTC)']) + cast_data$time_seconds)
+            vals = as.numeric(
+              lubridate::ymd_hms(cast_header$value[cast_header$key == 'cast_time_utc']) + cast_data$time_seconds
+            )
           )
         
         # Variables
-        varLongitude <- ncvar_def(
+        varLongitude <- ncdf4::ncvar_def(
           name = 'lon',
           units = 'degrees_east',
           dim = list(dimLon, dimLat, dimTime),
@@ -112,7 +155,7 @@ castaway_convert <-
           prec = 'double'
         )
         
-        varLatitude <- ncvar_def(
+        varLatitude <- ncdf4::ncvar_def(
           name = 'lat',
           units = 'degrees_north',
           dim = list(dimLon, dimLat, dimTime),
@@ -121,7 +164,7 @@ castaway_convert <-
           prec = 'double'
         )
         
-        varPressure <- ncvar_def(
+        varPressure <- ncdf4::ncvar_def(
           name = 'Pres_Z',
           units = 'dbar',
           dim = list(dimLon, dimLat, dimTime),
@@ -130,7 +173,7 @@ castaway_convert <-
           prec = 'double'
         )
         
-        varTemperature <- ncvar_def(
+        varTemperature <- ncdf4::ncvar_def(
           name = 'WC_temp_CTD',
           units = 'degrees C',
           dim = list(dimLon, dimLat, dimTime),
@@ -139,8 +182,8 @@ castaway_convert <-
           prec = 'double'
         )
         
-        varConductivity <- ncvar_def(
-          name = 'conductivity',
+        varCNDCST01 <- ncdf4::ncvar_def(
+          name = 'CNDCST01',
           units = 'microseimens per cm',
           dim = list(dimLon, dimLat, dimTime),
           missval = NA,
@@ -149,16 +192,16 @@ castaway_convert <-
         )
         
         castaway_nc <-
-          nc_create(
-            paste0(destination, "/", cast_header$value[cast_header$key == 'File name'], ".nc"),
+          ncdf4::nc_create(force_v4 = TRUE,
+            paste0(destination, "/", cast_header$value[cast_header$key == 'file_name'], ".nc"),
             vars = list(varPressure,
                         varTemperature,
-                        varConductivity)
+                        varCNDCST01)
           )
         
         # Include all header information in the netCDF file as attribute data
         for (i in cast_header$key) {
-          ncatt_put(
+          ncdf4::ncatt_put(
             nc = castaway_nc,
             varid = 0,
             attname = i,
@@ -166,47 +209,111 @@ castaway_convert <-
           )
         }
         
-        ncatt_put(
-          nc = castaway_nc,
-          varid = 0,
-          attname = 'project_name',
-          attval = project_name
-        )
-        
-        ncatt_put(
+        ncdf4::ncatt_put(
           nc = castaway_nc,
           varid = 0,
           attname = 'project_lead',
           attval = project_lead
         )
         
-        ncvar_put(
+        ncdf4::ncatt_put(
+          nc = castaway_nc,
+          varid = 0,
+          attname = 'cf_title',
+          attval = cf_title
+        )
+        
+        ncdf4::ncatt_put(
+          nc = castaway_nc,
+          varid = 0,
+          attname = 'cf_institute',
+          attval = cf_institute
+        )
+        
+        ncdf4::ncatt_put(
+          nc = castaway_nc,
+          varid = 0,
+          attname = 'cf_source',
+          attval = cf_source
+        )
+        
+        ncdf4::ncatt_put(
+          nc = castaway_nc,
+          varid = 0,
+          attname = 'cf_history',
+          attval = cf_history
+        )
+        
+        ncdf4::ncatt_put(
+          nc = castaway_nc,
+          varid = 0,
+          attname = 'cf_references',
+          attval = cf_references
+        )
+        
+        ncdf4::ncatt_put(
+          nc = castaway_nc,
+          varid = 0,
+          attname = 'cf_comment',
+          attval = cf_comment
+        )
+        
+        ncdf4::ncatt_put(
+          nc = castaway_nc,
+          varid = 0,
+          attname = 'cf_author',
+          attval = cf_author
+        )
+        
+        ncdf4::ncatt_put(
+          nc = castaway_nc,
+          varid = 0,
+          attname = 'creation_date',
+          attval = creation_date
+        )
+        
+        ncdf4::ncatt_put(
+          nc = castaway_nc,
+          varid = 0,
+          attname = 'Conventions',
+          attval = conventions
+        )  
+        
+        ncdf4::ncatt_put(
+          nc = castaway_nc,
+          varid = 0,
+          attname = 'license',
+          attval = "Open Government License - Canada (https://open.canada.ca/en/open-government-licence-canada)"
+        )
+        
+        ncdf4::ncvar_put(
           castaway_nc,
           varid = varPressure,
           vals = cast_data$pressure_decibar,
           count = c(1, 1, -1)
         )
         
-        ncvar_put(
+        ncdf4::ncvar_put(
           castaway_nc,
           varid = varTemperature,
           vals = cast_data$temperature_celsius,
-          count = c(1, 1,-1)
+          count = c(1, 1, -1)
         )
         
-        ncvar_put(
+        ncdf4::ncvar_put(
           castaway_nc,
-          varid = varConductivity,
+          varid = varCNDCST01,
           vals = cast_data$conductivity_microsiemens_per_centimeter,
-          count = c(1, 1,-1)
+          count = c(1, 1, -1)
         )
         
         # close the nc file to ensure no data is lost
-        nc_close(castaway_nc)
+        ncdf4::nc_close(castaway_nc)
+        
         message(
           paste0(
             "netCDF file ",
-            cast_header$value[cast_header$key == "File name"],
+            cast_header$value[cast_header$key == "file_name"],
             ".nc created in folder ",
             destination,
             "."
@@ -214,28 +321,28 @@ castaway_convert <-
         )
       }
       else {
-        if (cast_header$value[cast_header$key == 'Cast data'] == "Processed") {
+        if (cast_header$value[cast_header$key == 'cast_data'] == "Processed") {
           # Dimensions
           # Castaway data will be treated as a single dimension profile datatype
           
           dimLon <-
-            ncdim_def(
+            ncdf4::ncdim_def(
               name = 'lon',
               units = 'degrees_east',
               longname = 'Longitude',
-              vals = as.numeric(cast_header$value[cast_header$key == 'Start longitude'])
+              vals = as.numeric(cast_header$value[cast_header$key == 'start_longitude'])
             )
           
           dimLat <-
-            ncdim_def(
+            ncdf4::ncdim_def(
               name = 'lat',
               units = 'degrees_north',
               longname = 'Latitude',
-              vals = as.numeric(cast_header$value[cast_header$key == 'Start latitude'])
+              vals = as.numeric(cast_header$value[cast_header$key == 'start_latitude'])
             )
           
           dimDepth <-
-            ncdim_def(
+            ncdf4::ncdim_def(
               name = 'depth',
               units = 'm',
               longname = 'Depth in meters',
@@ -243,15 +350,15 @@ castaway_convert <-
             )
           
           dimTime <-
-            ncdim_def(
+            ncdf4::ncdim_def(
               name = 'time',
               units = 'seconds since 1970-01-01',
               longname = 'Time',
-              vals = as.numeric(ymd_hms(cast_header$value[cast_header$key == 'Cast time (UTC)']))
+              vals = as.numeric(lubridate::ymd_hms(cast_header$value[cast_header$key == 'cast_time_utc']))
             )
           
           # Variables
-          varLongitude <- ncvar_def(
+          varLongitude <- ncdf4::ncvar_def(
             name = 'lon',
             units = 'degrees_east',
             dim = list(dimLon, dimLat, dimDepth, dimTime),
@@ -260,7 +367,7 @@ castaway_convert <-
             prec = 'double'
           )
           
-          varLatitude <- ncvar_def(
+          varLatitude <- ncdf4::ncvar_def(
             name = 'lat',
             units = 'degrees_north',
             dim = list(dimLon, dimLat, dimDepth, dimTime),
@@ -269,7 +376,7 @@ castaway_convert <-
             prec = 'double'
           )
           
-          varPressure <- ncvar_def(
+          varPressure <- ncdf4::ncvar_def(
             name = 'Pres_Z',
             units = 'dbar',
             dim = list(dimLon, dimLat, dimDepth, dimTime),
@@ -279,7 +386,7 @@ castaway_convert <-
           )
           
           
-          varTemperature <- ncvar_def(
+          varTemperature <- ncdf4::ncvar_def(
             name = 'WC_temp_CTD',
             units = 'degrees C',
             dim = list(dimLon, dimLat, dimDepth, dimTime),
@@ -288,8 +395,8 @@ castaway_convert <-
             prec = 'double'
           )
           
-          varConductivity <- ncvar_def(
-            name = 'conductivity',
+          varCNDCST01 <- ncdf4::ncvar_def(
+            name = 'CNDCST01',
             units = 'microseimens per cm',
             dim = list(dimLon, dimLat, dimDepth, dimTime),
             missval = NA,
@@ -297,7 +404,7 @@ castaway_convert <-
             prec = 'double'
           )
           
-          varConductance <- ncvar_def(
+          varConductance <- ncdf4::ncvar_def(
             name = 'specific conductance',
             units = 'microseimens per cm',
             dim = list(dimLon, dimLat, dimDepth, dimTime),
@@ -306,7 +413,7 @@ castaway_convert <-
             prec = 'double'
           )
           
-          varSalinity <- ncvar_def(
+          varSalinity <- ncdf4::ncvar_def(
             name = 'salinity',
             units = 'PSS',
             dim = list(dimLon, dimLat, dimDepth, dimTime),
@@ -315,7 +422,7 @@ castaway_convert <-
             prec = 'double'
           )
           
-          varSound <- ncvar_def(
+          varSound <- ncdf4::ncvar_def(
             name = 'sound velocity',
             units = 'm/s',
             dim = list(dimLon, dimLat, dimDepth, dimTime),
@@ -324,7 +431,7 @@ castaway_convert <-
             prec = 'double'
           )
           
-          varDensity <- ncvar_def(
+          varDensity <- ncdf4::ncvar_def(
             name = 'density',
             units = 'kg/m^3',
             dim = list(dimLon, dimLat, dimDepth, dimTime),
@@ -334,13 +441,13 @@ castaway_convert <-
           )
           
           castaway_nc <-
-            nc_create(
-              paste0(destination, "/", cast_header$value[cast_header$key == 'File name'], ".nc"),
+            ncdf4::nc_create(force_v4 = TRUE,
+              paste0(destination, "/", cast_header$value[cast_header$key == 'file_name'], ".nc"),
               vars = list(
                 varPressure,
                 # varDepth,
                 varTemperature,
-                varConductivity,
+                varCNDCST01,
                 varConductance,
                 varSalinity,
                 varSound,
@@ -350,7 +457,7 @@ castaway_convert <-
           
           # Include all header information in the netCDF file as attribute data
           for (i in cast_header$key) {
-            ncatt_put(
+            ncdf4::ncatt_put(
               nc = castaway_nc,
               varid = 0,
               attname = i,
@@ -358,73 +465,137 @@ castaway_convert <-
             )
           }
           
-          ncatt_put(
-            nc = castaway_nc,
-            varid = 0,
-            attname = 'project_name',
-            attval = project_name
-          )
-          
-          ncatt_put(
+          ncdf4::ncatt_put(
             nc = castaway_nc,
             varid = 0,
             attname = 'project_lead',
             attval = project_lead
           )
-          ncvar_put(
+          
+          ncdf4::ncatt_put(
+            nc = castaway_nc,
+            varid = 0,
+            attname = 'cf_title',
+            attval = cf_title
+          )
+          
+          ncdf4::ncatt_put(
+            nc = castaway_nc,
+            varid = 0,
+            attname = 'cf_institute',
+            attval = cf_institute
+          )
+          
+          ncdf4::ncatt_put(
+            nc = castaway_nc,
+            varid = 0,
+            attname = 'cf_source',
+            attval = cf_source
+          )
+          
+          ncdf4::ncatt_put(
+            nc = castaway_nc,
+            varid = 0,
+            attname = 'cf_history',
+            attval = cf_history
+          )
+          
+          ncdf4::ncatt_put(
+            nc = castaway_nc,
+            varid = 0,
+            attname = 'cf_references',
+            attval = cf_references
+          )
+          
+          ncdf4::ncatt_put(
+            nc = castaway_nc,
+            varid = 0,
+            attname = 'cf_comment',
+            attval = cf_comment
+          )
+          
+          ncdf4::ncatt_put(
+            nc = castaway_nc,
+            varid = 0,
+            attname = 'cf_author',
+            attval = cf_author
+          )
+          
+          ncdf4::ncatt_put(
+            nc = castaway_nc,
+            varid = 0,
+            attname = 'creation_date',
+            attval = creation_date
+          )
+          
+          ncdf4::ncatt_put(
+            nc = castaway_nc,
+            varid = 0,
+            attname = 'Conventions',
+            attval = conventions
+          )
+          
+          ncdf4::ncatt_put(
+            nc = castaway_nc,
+            varid = 0,
+            attname = 'license',
+            attval = "Open Government License - Canada (https://open.canada.ca/en/open-government-licence-canada)"
+          )
+          
+          ncdf4::ncvar_put(
             castaway_nc,
             varid = varPressure,
             vals = cast_data$pressure_decibar,
-            count = c(1, 1,-1, 1)
+            count = c(1, 1, -1, 1)
           )
           
-          ncvar_put(
+          ncdf4::ncvar_put(
             castaway_nc,
             varid = varTemperature,
             vals = cast_data$temperature_celsius,
-            count = c(1, 1,-1, 1)
+            count = c(1, 1, -1, 1)
           )
           
-          ncvar_put(
+          ncdf4::ncvar_put(
             castaway_nc,
-            varid = varConductivity,
+            varid = varCNDCST01,
             vals = cast_data$conductivity_microsiemens_per_centimeter,
-            count = c(1, 1,-1, 1)
+            count = c(1, 1, -1, 1)
           )
           
-          ncvar_put(
+          ncdf4::ncvar_put(
             castaway_nc,
             varid = varConductance,
             vals = cast_data$specific_conductance_microsiemens_per_centimeter,
-            count = c(1, 1,-1, 1)
+            count = c(1, 1, -1, 1)
           )
           
-          ncvar_put(
+          ncdf4::ncvar_put(
             castaway_nc,
             varid = varSalinity,
             vals = cast_data$salinity_practical_salinity_scale,
-            count = c(1, 1,-1, 1)
+            count = c(1, 1, -1, 1)
           )
           
-          ncvar_put(
+          ncdf4::ncvar_put(
             castaway_nc,
             varid = varSound,
             vals = cast_data$sound_velocity_meters_per_second,
-            count = c(1, 1,-1, 1)
+            count = c(1, 1, -1, 1)
           )
           
-          ncvar_put(
+          ncdf4::ncvar_put(
             castaway_nc,
             varid = varDensity,
             vals = cast_data$density_kilograms_per_cubic_meter,
-            count = c(1, 1,-1, 1)
+            count = c(1, 1, -1, 1)
           )
           # close the nc file to ensure no data is lost
-          nc_close(castaway_nc)
+          ncdf4::nc_close(castaway_nc)
           message(
             paste0(
               "netCDF file ",
-              cast_header$value[cast_header$key == "File name"],
+              cast_header$value[cast_header$key == "file_name"],
               ".nc created in folder ",
               destination,
               "."

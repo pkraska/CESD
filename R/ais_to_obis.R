@@ -8,7 +8,7 @@
 #' @examples aisIndex_to_OBIS_occurenceCore("file.csv")
 #'
 #' @import readr
-#' @import worms
+#' @import worrms
 #' @import dplyr
 #'
 
@@ -18,7 +18,7 @@ aisIndex_to_OBIS_occurenceCore <- function(file) {
     dplyr::distinct()
   
   worms <-
-    worms::wormsbymatchnames(taxon_names = unique_spp$species_name) %>%
+    worrms::wm_records_taxamatch(name = unique_spp$species_name) %>%
     dplyr::select(scientificname, lsid)
   
   readr::read_csv(file) %>%

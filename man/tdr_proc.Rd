@@ -16,8 +16,6 @@ S/N: xxxx, SEN S/N: xxxx)`, `Water Level, meters (LGR S/N: xxxx)`}
 returns a comma delimited text file in the format
   `[YEAR]-[MONTH]-[DAY]_SABS_warf_water_temperature_data.csv` for importing
   into COERS.TDRLOG
-
-
 }
 \description{
 function to transform Hobo temperature logger data that has been

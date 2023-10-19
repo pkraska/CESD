@@ -9,9 +9,6 @@ aisIndex_to_OBIS_occurenceCore(file)
 \arguments{
 \item{file}{CSV formatted file created using \code{ais_all_presence}}
 }
-\value{
-
-}
 \description{
 AIS Biofouling to OBIS Occurence Darwin Core (DwC)
 }

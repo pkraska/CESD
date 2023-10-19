@@ -14,12 +14,6 @@ summary data for the presence/absence data in CSV format}
 to. CSV file is called \code{AIS_biofouling_allyears_presence_absence.csv}
 and function will create a folder from \code{output}.}
 }
-\value{
-
-}
 \description{
 Aquatic Invasive Species (AIS) annual biofouling abundance data amalgamation
-}
-\examples{
-
 }

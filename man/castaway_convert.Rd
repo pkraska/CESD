@@ -7,23 +7,53 @@
 castaway_convert(
   files,
   destination = "R:/Science/CESD/CESD_DataManagement/data_out/castawayCTD",
-  level = "raw",
-  project_lead,
-  project_name
+  project_lead = "",
+  cf_title =
+    c("Maritime Ecosystem and Ocean Science Castaway CTD data archive – Raw / Archives des données CTD des écosystèmes maritimes et des sciences océaniques – Brutes",
+    "Maritime Ecosystem and Ocean Science Castaway CTD data archive – Processed / Archives des données CTD des écosystèmes maritimes et des sciences océaniques – Traitées"),
+  cf_institute = c("BIO", "SABS"),
+  cf_source =
+    "Castaway CTD data collected as part of Fisheries and Oceans Canada (DFO) science activities in the Maritime region of Canada",
+  cf_history = "",
+  cf_references = "",
+  cf_comment = "",
+  cf_author = "Peter Kraska, CESD Divisional data Manager <Peter.Kraska@DFO-MPO.gc.ca>",
+  creation_date = format(x = Sys.time(), tz = "GMT", format = "\%FT\%H:\%M\%SZ"),
+  conventions = "CF-1.8"
 )
 }
 \arguments{
-\item{files}{A character vector of a directory in which castaway CTD CSV
-files are stored.}
+\item{files}{A character vector of castaway CTD files in CSV format to
+process}
 
 \item{destination}{an existing folder to save netCDF files to}
 
-\item{level}{either \code{raw} or \code{processed} based on the level of
-processing completed using the castaway CTD software}
+\item{project_lead}{an optional field to add the project lead's name to the
+file global attributes}
 
-\item{project_lead}{an optional field to add the project lead's name to the file global attributes}
+\item{cf_title}{an optional field to add to the generated NetCDF file's
+global attributes (required for CF compliant NetCDF file creation)}
 
-\item{project_name}{an optional field to add a project name to the file global attributes}
+\item{cf_institute}{an optional field to add to the generated NetCDF file's
+global attributes (required for CF compliant NetCDF file creation)}
+
+\item{cf_source}{an optional field to add to the generated NetCDF file's
+global attributes (required for CF compliant NetCDF file creation)}
+
+\item{cf_history}{an optional field to add to the generated NetCDF file's
+global attributes (required for CF compliant NetCDF file creation)}
+
+\item{cf_references}{an optional field to add to the generated NetCDF file's
+global attributes (required for CF compliant NetCDF file creation)}
+
+\item{cf_comment}{an optional field to add to the generated NetCDF file's
+global attributes (required for CF compliant NetCDF file creation)}
+
+\item{cf_author}{an optional field to add to the generated NetCDF file's
+global attributes (required for CF compliant NetCDF file creation)}
+
+\item{creation_date}{creation date to append to the global attributes of the
+NetCDF file}
 }
 \value{
 \code{castaway_convert()} creates netCDF files from castaway CTD CSV

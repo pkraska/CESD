@@ -13,9 +13,6 @@ Monitoring (LTTM) file}
 
 \item{output}{character vector path to directory to save NetCDF file in}
 }
-\value{
-
-}
 \description{
 Convert Long Term Temperature Monitoring (LTTM) Ocean Data Format (ODF) to
 NetCDF (.nc) formatted files
