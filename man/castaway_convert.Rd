@@ -8,6 +8,7 @@ castaway_convert(
   files,
   destination = "R:/Science/CESD/CESD_DataManagement/data_out/castawayCTD",
   project_lead = "",
+  project = "",
   cf_title =
     c("Maritime Ecosystem and Ocean Science Castaway CTD data archive – Raw / Archives des données CTD des écosystèmes maritimes et des sciences océaniques – Brutes",
     "Maritime Ecosystem and Ocean Science Castaway CTD data archive – Processed / Archives des données CTD des écosystèmes maritimes et des sciences océaniques – Traitées"),
@@ -15,11 +16,13 @@ castaway_convert(
   cf_source =
     "Castaway CTD data collected as part of Fisheries and Oceans Canada (DFO) science activities in the Maritime region of Canada",
   cf_history = "",
-  cf_references = "",
+  cf_references =
+    "https://www.xylem.com/en-ca/products--services/analytical-instruments-and-equipment/data-collection-mapping-profiling-survey-systems/ctds/castaway-ctd/ https://www.ysi.com/File\%20Library/Documents/White\%20Papers/castaway-ctd-principles-of-operation.pdf",
   cf_comment = "",
   cf_author = "Peter Kraska, CESD Divisional data Manager <Peter.Kraska@DFO-MPO.gc.ca>",
-  creation_date = format(x = Sys.time(), tz = "GMT", format = "\%FT\%H:\%M\%SZ"),
-  conventions = "CF-1.8"
+  cf_conventions = "CF-1.8",
+  cf_calendar = "standard",
+  creation_date = format(x = Sys.time(), tz = "GMT", format = "\%FT\%H:\%M\%SZ")
 )
 }
 \arguments{
@@ -31,26 +34,52 @@ process}
 \item{project_lead}{an optional field to add the project lead's name to the
 file global attributes}
 
+\item{project}{Character string indicating the funding source and or
+overarching project this data was collected as part of}
+
 \item{cf_title}{an optional field to add to the generated NetCDF file's
-global attributes (required for CF compliant NetCDF file creation)}
+global attributes (required for CF compliant NetCDF file creation). A
+succinct description of what is in the dataset.}
 
 \item{cf_institute}{an optional field to add to the generated NetCDF file's
-global attributes (required for CF compliant NetCDF file creation)}
+global attributes (required for CF compliant NetCDF file creation).
+Specifies where the original data was produced.}
 
 \item{cf_source}{an optional field to add to the generated NetCDF file's
-global attributes (required for CF compliant NetCDF file creation)}
+global attributes (required for CF compliant NetCDF file creation). The
+method of production of the original data. If it was model-generated,
+source should name the model and its version, as specifically as could be
+useful. If it is observational, source should characterize it (e.g.,
+"surface observation" or "radiosonde").}
 
 \item{cf_history}{an optional field to add to the generated NetCDF file's
-global attributes (required for CF compliant NetCDF file creation)}
+global attributes (required for CF compliant NetCDF file creation).
+Provides an audit trail for modifications to the original data.
+Well-behaved generic netCDF filters will automatically append their name
+and the parameters with which they were invoked to the global history
+attribute of an input netCDF file. We recommend that each line begin with a
+timestamp indicating the date and time of day that the program was
+executed.}
 
 \item{cf_references}{an optional field to add to the generated NetCDF file's
-global attributes (required for CF compliant NetCDF file creation)}
+global attributes (required for CF compliant NetCDF file creation).
+Published or web-based references that describe the data or methods used to
+produce it.}
 
 \item{cf_comment}{an optional field to add to the generated NetCDF file's
-global attributes (required for CF compliant NetCDF file creation)}
+global attributes (required for CF compliant NetCDF file creation).
+Miscellaneous information about the data or methods used to produce it.}
 
 \item{cf_author}{an optional field to add to the generated NetCDF file's
 global attributes (required for CF compliant NetCDF file creation)}
+
+\item{cf_conventions}{an optional field to add to the generated NetCDF file's
+global attributes (required for CF compliant NetCDF file creation)}
+
+\item{cf_calendar}{an optional field to add to the generated NetCDF file's
+global attributes (required for CF compliant NetCDF file creation).
+Specifies the calendar used for time dimensions.
+(http://cfconventions.org/Data/cf-conventions/cf-conventions-1.10/cf-conventions.html#calendar)}
 
 \item{creation_date}{creation date to append to the global attributes of the
 NetCDF file}
