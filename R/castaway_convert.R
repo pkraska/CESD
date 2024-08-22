@@ -375,6 +375,7 @@ castaway_convert <-
           
           dimTime <-
             ncdf4::ncdim_def(
+              calendar = "standard",
               name = 'time',
               units = 'seconds since 1970-01-01',
               longname = 'Time',
@@ -429,8 +430,8 @@ castaway_convert <-
           )
           
           varConductance <- ncdf4::ncvar_def(
-            name = 'specific conductance',
-            units = 'microsiemens per centimeter',
+            name = 'specific_conductance',
+            units = 'uS/cm',
             dim = list(dimLon, dimLat, dimDepth, dimTime),
             missval = NA,
             longname = 'Specific Conductance (\u00B5S/cm)',
@@ -438,16 +439,16 @@ castaway_convert <-
           )
           
           varSalinity <- ncdf4::ncvar_def(
-            name = 'salinity',
-            units = 'PSS',
+            name = 'PSALST01',
+            units = '1',
             dim = list(dimLon, dimLat, dimDepth, dimTime),
             missval = NA,
-            longname = 'Salinity (PSS)',
+            longname = 'Salinity (PSS-78)',
             prec = 'double'
           )
           
           varSound <- ncdf4::ncvar_def(
-            name = 'sound velocity',
+            name = 'SVELCA01',
             units = 'm/s',
             dim = list(dimLon, dimLat, dimDepth, dimTime),
             missval = NA,
