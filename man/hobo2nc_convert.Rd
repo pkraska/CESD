@@ -10,7 +10,7 @@ hobo2nc_convert(
   latitude,
   longitude,
   deployment,
-  destination = c("R:/Science/CESD/CESD_DataManagement/data_out/HOBO", "."),
+  destination = "",
   project_lead = "",
   project = "",
   cf_title = "Maritime Ecosystem and Ocean Science Hobo temperature logger data",

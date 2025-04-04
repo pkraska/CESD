@@ -75,7 +75,7 @@ hobo2nc_convert <-
            latitude,
            longitude,
            deployment,
-           destination = c("R:/Science/CESD/CESD_DataManagement/data_out/HOBO", "."),
+           destination = "",
            project_lead = "",
            project = "",
            cf_title = "Maritime Ecosystem and Ocean Science Hobo temperature logger data",
@@ -116,14 +116,12 @@ hobo2nc_convert <-
         mutate(
           datetime = paste0(datetime, " ", hobo_header_gmt_offset_water),
           datetime = lubridate::mdy_hms(x = datetime),
-          gsw_z = -gsw::gsw_z_from_p((abs_pressure_kpa - 101.325) / 100, latitude = 43.7178)
+          gsw_z = -gsw::gsw_z_from_p((abs_pressure_kpa - 101.325) / 100, latitude = latitude)
         )
     } else {
-      hobo_data_air <- readr::read_csv(
-        "C:/Users/kraskape/OneDrive - DFO-MPO/EdHorne_DataRescue/HOBO/argyle_moored_sensors_data_2024/West_Pubnico_air_2023.csv",
-        skip = 1,
-        show_col_types = FALSE
-      )
+      hobo_data_air <- readr::read_csv(atm_corr_file,
+                                       skip = 1,
+                                       show_col_types = FALSE)
       
       hobo_colnames_air <- colnames(hobo_data_air)
       
@@ -198,14 +196,16 @@ hobo2nc_convert <-
       prec = 'double'
     )
     
-    varPressure_air <- ncdf4::ncvar_def(
-      name = 'CAPBZZ01',
-      units = 'kPa',
-      dim = list(dimLon, dimLat, dimTime),
-      missval = NA,
-      longname = "Depth below surface of the water body by semi-fixed in-situ pressure sensor and correction to zero at sea level and conversion to depth using unspecified algorithm",
-      prec = 'double'
-    )
+    if (!is.na(atm_corr_file)) {
+      varPressure_air <- ncdf4::ncvar_def(
+        name = 'CAPBZZ01',
+        units = 'kPa',
+        dim = list(dimLon, dimLat, dimTime),
+        missval = NA,
+        longname = "Depth below surface of the water body by semi-fixed in-situ pressure sensor and correction to zero at sea level and conversion to depth using unspecified algorithm",
+        prec = 'double'
+      )
+    }
     
     varDepth <- ncdf4::ncvar_def(
       name = 'PPSBPR01',
@@ -225,15 +225,16 @@ hobo2nc_convert <-
       prec = 'double'
     )
     
-    varTemperature_air <- ncdf4::ncvar_def(
-      name = 'air_temperature',
-      units = 'degrees C',
-      dim = list(dimLon, dimLat, dimTime),
-      missval = NA,
-      longname = 'Temperature of the air measured by the accompanying Hobo temperature pressure logger',
-      prec = 'double'
-    )
-    
+    if (!is.na(atm_corr_file)) {
+      varTemperature_air <- ncdf4::ncvar_def(
+        name = 'air_temperature',
+        units = 'degrees C',
+        dim = list(dimLon, dimLat, dimTime),
+        missval = NA,
+        longname = 'Temperature of the air measured by the accompanying Hobo temperature pressure logger',
+        prec = 'double'
+      )
+    }
     
     if (file.exists(paste0(
       destination,
@@ -259,29 +260,49 @@ hobo2nc_convert <-
     }
     
     
-    castaway_nc <-
-      ncdf4::nc_create(
-        force_v4 = TRUE,
-        paste0(
-          destination,
-          "/",
-          cf_institute,
-          "_",
-          cf_author,
-          "_",
-          cf_title,
-          "_",
-          tools::file_path_sans_ext(basename(file)),
-          ".nc"
-        ),
-        vars = list(
-          varPressure_uncorr,
-          varPressure_air,
-          varDepth,
-          varTemperature,
-          varTemperature_air
+    if (!is.na(atm_corr_file)) {
+      castaway_nc <-
+        ncdf4::nc_create(
+          force_v4 = TRUE,
+          paste0(
+            destination,
+            "/",
+            cf_institute,
+            "_",
+            cf_author,
+            "_",
+            cf_title,
+            "_",
+            tools::file_path_sans_ext(basename(file)),
+            ".nc"
+          ),
+          vars = list(
+            varPressure_uncorr,
+            varPressure_air,
+            varDepth,
+            varTemperature,
+            varTemperature_air
+          )
         )
-      )
+    } else {
+      castaway_nc <-
+        ncdf4::nc_create(
+          force_v4 = TRUE,
+          paste0(
+            destination,
+            "/",
+            cf_institute,
+            "_",
+            cf_author,
+            "_",
+            cf_title,
+            "_",
+            tools::file_path_sans_ext(basename(file)),
+            ".nc"
+          ),
+          vars = list(varPressure_uncorr, varDepth, varTemperature)
+        )
+    }
     
     ncdf4::ncatt_put(
       nc = castaway_nc,
@@ -368,12 +389,14 @@ hobo2nc_convert <-
       count = c(1, 1, -1)
     )
     
-    ncdf4::ncvar_put(
-      castaway_nc,
-      varid = varPressure_air,
-      vals = hobo_data$abs_pressure_kpa_air,
-      count = c(1, 1, -1)
-    )
+    if (!is.na(atm_corr_file)) {
+      ncdf4::ncvar_put(
+        castaway_nc,
+        varid = varPressure_air,
+        vals = hobo_data$abs_pressure_kpa_air,
+        count = c(1, 1, -1)
+      )
+    }
     
     ncdf4::ncvar_put(
       castaway_nc,
@@ -382,12 +405,14 @@ hobo2nc_convert <-
       count = c(1, 1, -1)
     )
     
-    ncdf4::ncvar_put(
-      castaway_nc,
-      varid = varTemperature_air,
-      vals = hobo_data$temperature_c_air,
-      count = c(1, 1, -1)
-    )
+    if (!is.na(atm_corr_file)) {
+      ncdf4::ncvar_put(
+        castaway_nc,
+        varid = varTemperature_air,
+        vals = hobo_data$temperature_c_air,
+        count = c(1, 1, -1)
+      )
+    }
     
     ncdf4::ncvar_put(
       castaway_nc,
@@ -400,24 +425,22 @@ hobo2nc_convert <-
     # close the nc file to ensure no data is lost
     ncdf4::nc_close(castaway_nc)
     
-    message(
+    message(paste0(
+      "netCDF file ",
       paste0(
-        "netCDF file ",
-        paste0(
-          destination,
-          "/",
-          cf_institute,
-          "_",
-          cf_author,
-          "_",
-          cf_title,
-          "_",
-          tools::file_path_sans_ext(basename(file)),
-          ".nc"
-        ),
-        " created in folder ",
         destination,
-        "."
-      )
-    )
+        "/",
+        cf_institute,
+        "_",
+        cf_author,
+        "_",
+        cf_title,
+        "_",
+        tools::file_path_sans_ext(basename(file)),
+        ".nc"
+      ),
+      " created in folder ",
+      destination,
+      "."
+    ))
   }

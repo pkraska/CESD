@@ -1,6 +1,7 @@
 #' Title
 #'
-#' @param file
+#' @param file A character string path to a Hobo temperatuer and pressure logger
+#'   csv output file
 #' @param cf_title
 #' @param cf_institute
 #' @param cf_source
@@ -18,9 +19,9 @@
 #' @examples
 odf2nc_convert <-
   function(file,
-           cf_title = "Maritime Ecosystem and Ocean Science Hobo temperature logger data",
+           cf_title,
            cf_institute = c("BIO", "SABS"),
-           cf_source = "Hobo temperature logger data collected as part of Fisheries and Oceans Canada (DFO) science activities in the Maritime region of Canada",
+           cf_source = "[Insert information here] data collected as part of Fisheries and Oceans Canada (DFO) science activities in the Maritime region of Canada",
            cf_history = "",
            cf_references = "",
            cf_comment = "",
@@ -72,28 +73,28 @@ odf2nc_convert <-
     param_name <- c()
     param_unit <- c()
     
-    for (i in 1:length(odf$metadata[["PARAMETER_HEADER"]])) {
-      param_metadata <- odf$metadata[["PARAMETER_HEADER"]][[i]]
-      
-      param_values <- list()
-      for (j in 1:length(param_metadata)) {
+    
+    for (header in c("CRUISE_HEADER", "EVENT_HEADER", "INSTRUMENT_HEADER")) {
+      for (i in 1:length(odf$metadata[[header]])) {
+        metadata <- odf$metadata[[header]]
+        
+        metadata_values <- list()
+        
         key <- unlist(regmatches(
-          x = param_metadata[j],
+          x = metadata[i],
           m = gregexpr(
             pattern = "\\w{1,}(?==)",
-            text = param_metadata[j],
+            text = metadata[i],
             perl = TRUE
           )
         ))
         
-        value <- regmatches(
-          x = param_metadata[j],
-          m = gregexpr(
-            pattern = "(?<==).*$",
-            text = param_metadata[j],
-            perl = TRUE
-          )
-        ) %>%
+        value <- regmatches(x = metadata[i],
+                            m = gregexpr(
+                              pattern = "(?<==).*$",
+                              text = metadata[i],
+                              perl = TRUE
+                            )) %>%
           unlist() %>%
           stringr::str_remove(pattern = "'") %>%
           stringr::str_remove(pattern = "',") %>%
@@ -104,13 +105,53 @@ odf2nc_convert <-
           value <- as.numeric(value)
         }
         
-        param_values[key] <- value
-        odf$metadata[["PARAMETER_HEADER"]][[i]] <- param_values
+        metadata_values[key] <- value
+        odf$metadata[[header]][[i]] <- metadata_values
+        # names(odf$metadata[[header]][[i]]) <- key
         
       }
-      names(odf$metadata$PARAMETER_HEADER)[i] <- param_values[['NAME']]
+      # names(odf$metadata[[header]])[i] <- metadata_values[['NAME']]
     }
     
+    # for (i in 1:length(odf$metadata[["PARAMETER_HEADER"]])) {
+    #   param_metadata <- odf$metadata[["PARAMETER_HEADER"]][[i]]
+    #
+    #   param_values <- list()
+    #   for (j in 1:length(param_metadata)) {
+    #     key <- unlist(regmatches(
+    #       x = param_metadata[j],
+    #       m = gregexpr(
+    #         pattern = "\\w{1,}(?==)",
+    #         text = param_metadata[j],
+    #         perl = TRUE
+    #       )
+    #     ))
+    #
+    #     value <- regmatches(
+    #       x = param_metadata[j],
+    #       m = gregexpr(
+    #         pattern = "(?<==).*$",
+    #         text = param_metadata[j],
+    #         perl = TRUE
+    #       )
+    #     ) %>%
+    #       unlist() %>%
+    #       stringr::str_remove(pattern = "'") %>%
+    #       stringr::str_remove(pattern = "',") %>%
+    #       stringr::str_remove(pattern = ",") %>%
+    #       stringr::str_trim(side = 'both')
+    #
+    #     if (suppressWarnings(!is.na(as.numeric(value)))) {
+    #       value <- as.numeric(value)
+    #     }
+    #
+    #     param_values[key] <- value
+    #     odf$metadata[["PARAMETER_HEADER"]][[i]] <- param_values
+    #
+    #   }
+    #   names(odf$metadata$PARAMETER_HEADER)[i] <- param_values[['NAME']]
+    # }
+    #
     #### DATA ####
     odf$data <- as_tibble(odf_file[odf_header_end + 1:length(odf_file)]) %>%
       separate(

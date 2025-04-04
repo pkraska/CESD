@@ -6,10 +6,10 @@
 \usage{
 odf2nc_convert(
   file,
-  cf_title = "Maritime Ecosystem and Ocean Science Hobo temperature logger data",
+  cf_title,
   cf_institute = c("BIO", "SABS"),
   cf_source =
-    "Hobo temperature logger data collected as part of Fisheries and Oceans Canada (DFO) science activities in the Maritime region of Canada",
+    "[Insert information here] data collected as part of Fisheries and Oceans Canada (DFO) science activities in the Maritime region of Canada",
   cf_history = "",
   cf_references = "",
   cf_comment = "",
@@ -20,25 +20,8 @@ odf2nc_convert(
 )
 }
 \arguments{
-\item{file}{}
-
-\item{cf_title}{}
-
-\item{cf_institute}{}
-
-\item{cf_source}{}
-
-\item{cf_history}{}
-
-\item{cf_references}{}
-
-\item{cf_comment}{}
-
-\item{cf_author}{}
-
-\item{cf_conventions}{}
-
-\item{cf_calendar}{}
+\item{file}{A character string path to a Hobo temperatuer and pressure logger
+csv output file}
 
 \item{creation_date}{}
 }
